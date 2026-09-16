@@ -224,7 +224,81 @@ const loginVal = (req, res, next) => {
 
 };
 
+const emailVal = (req, res, next) => {
+
+    try {
+
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Bad Request"
+            });
+        };
+
+        const { email } = req.body;
+
+        if (!email || email.trim() === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Email Is Required"
+            });
+        };
+
+        if (/[\p{Extended_Pictographic}]/u.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "Email cannot contain emojis"
+            });
+        };
+
+        if (typeof email !== "string" || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim())) {
+            return res.status(400).json({
+                success: false,
+                message: "Please enter a valid email address"
+            });
+        };
+
+        next();
+
+    } catch (err) {
+        return res.status(500).json({
+            code: "SERVER_ERROR",
+            success: false,
+            message: err.message
+        });
+    }
+
+};
+
+const verifyAccVal = (req, res, next) => {
+
+    try {
+
+        const verifyToken = req.cookies.verifyAccToken;
+
+        if (!verifyToken) {
+            return res.status(400).json({
+                code: "ACCESS_DENIED",
+                success: false,
+                message: "Bad Request"
+            });
+        };
+
+        next();
+
+    } catch (err) {
+        return res.status(500).json({
+            code: "SERVER_ERROR",
+            success: false,
+            message: err.message
+        });
+    }
+
+};
+
 export {
     signupVal,
     loginVal,
+    emailVal,
+    verifyAccVal,
 }
