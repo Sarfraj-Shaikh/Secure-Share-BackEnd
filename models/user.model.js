@@ -16,6 +16,7 @@ const userSchema = new Schema({
         trim: true,
         lowercase: true,
         minlength: [2, "Email must be at least 2 characters"],
+        unique: true,
     },
     dp: {
         type: String,
@@ -29,6 +30,7 @@ const userSchema = new Schema({
         unique: true,
         trim: true,
         match: [/^[0-9]{10}$/, "Invalid mobile number"],
+        unique: true,
     },
     lastLogin: {
         type: Date,

@@ -110,7 +110,102 @@ const signupVal = (req, res, next) => {
             });
         };
 
-         if (password.trim().length > 100) {
+        if (password.trim().length > 100) {
+            return res.status(400).json({
+                success: false,
+                message: "Password cannot exceed 100 characters"
+            });
+        };
+
+        next();
+
+    } catch (err) {
+        return res.status(500).json({
+            code: "SERVER_ERROR",
+            success: false,
+            message: err.message
+        });
+    }
+
+};
+
+const loginVal = (req, res, next) => {
+
+    try {
+
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Bad Request"
+            });
+        };
+
+        const { email, password } = req.body;
+
+        if (!email || email.trim() === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Email Is Required"
+            });
+        };
+
+        if (/[\p{Extended_Pictographic}]/u.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "Email cannot contain emojis"
+            });
+        };
+
+        if (typeof email !== "string" || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim())) {
+            return res.status(400).json({
+                success: false,
+                message: "Please enter a valid email address"
+            });
+        };
+
+        if (!password || password.trim() === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Password Is Required"
+            });
+        };
+
+        if (!/[A-Z]/.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least contain 1 uppercase character"
+            });
+        };
+
+        if (!/[a-z]/.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least contain 1 lowercase character"
+            });
+        };
+
+        if (!/[0-9]/.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least contain 1 number"
+            });
+        };
+
+        if (!/[!@#$%^&*(),.?":{}|<>_\-+=/\\[\];']/.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least contain 1 special character"
+            });
+        };
+
+        if (typeof password !== "string" || password.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 8 characters"
+            });
+        };
+
+        if (password.trim().length > 100) {
             return res.status(400).json({
                 success: false,
                 message: "Password cannot exceed 100 characters"
@@ -131,4 +226,5 @@ const signupVal = (req, res, next) => {
 
 export {
     signupVal,
+    loginVal,
 }

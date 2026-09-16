@@ -4,6 +4,8 @@ dotenv.config();
 import express from "express";
 import ConnectDB from "./config/db.js";
 import cors from "cors";
+import cookieParser from "cookie-parser";
+
 import { userEnpoints } from "./utils/endpoints/userEndpoints.js";
 import { adminEnpoints } from "./utils/endpoints/adminEndpoints.js";
 
@@ -13,6 +15,7 @@ ConnectDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+app.use(cookieParser());
 
 userEnpoints(app);
 adminEnpoints(app);
