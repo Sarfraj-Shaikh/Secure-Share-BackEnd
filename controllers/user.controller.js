@@ -3,6 +3,7 @@ import bycrpt from "bcrypt";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import { verifyAccountEmail } from "../templates/verifyAccount.js";
+import { verifyOTPEmail } from "../templates/verifyOtp.js";
 
 
 const signup = async (req, res) => {
@@ -287,9 +288,199 @@ const verifyAccount = async (req, res) => {
     }
 };
 
+const passEmail = async (req, res) => {
+
+    try {
+
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Bad Request"
+            });
+        }
+
+        const { email } = req.body;
+
+        const user = await userModel
+            .findOne({ email })
+            .select("+otp +otpExpiresAt");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Account Does Not Exist"
+            });
+        }
+
+        if (user.status === "inactive") {
+            return res.status(400).json({
+                code: "ACCESS_BLOCKED",
+                success: false,
+                message: "Your Account Is Blocked"
+            });
+        }
+
+        const currentTime = new Date();
+
+        // If previous OTP is still valid
+        if (user.otpExpiresAt && user.otpExpiresAt > currentTime) {
+            const expiryTime = user.otpExpiresAt.toLocaleString("en-IN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true
+            });
+
+            return res.status(429).json({
+                success: false,
+                message: `OTP already sent. Please wait until ${expiryTime}.`
+            });
+        }
+
+        // 6 digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // OTP valid for 5 minutes
+        const otpExpiresAt = new Date(currentTime.getTime() + 5 * 60 * 1000);
+
+        // Save OTP in DB
+        user.otp = otp;
+        user.otpExpiresAt = otpExpiresAt;
+
+        await user.save();
+
+        // Mail transporter
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        // Send OTP email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: `${process.env.SITE_NAME} - Verify Your OTP`,
+            html: verifyOTPEmail(user.fullName, otp)
+        };
+
+        try {
+
+            await transporter.sendMail(mailOptions);
+
+        } catch (mailError) {
+
+            // Email failed, remove OTP from DB
+            user.otp = undefined;
+            user.otpExpiresAt = undefined;
+
+            await user.save();
+
+            return res.status(500).json({
+                code: "EMAIL_SEND_FAILED",
+                success: false,
+                message: "Unable to send verification email"
+            });
+        }
+
+        // Cookie valid for exactly 5 minutes
+        // const cookieMaxAge = 5 * 60 * 1000;
+
+        res.cookie("email", user.email, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            // maxAge: cookieMaxAge
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "OTP email sent successfully"
+        });
+
+    } catch (err) {
+
+        return res.status(500).json({
+            code: "SERVER_ERROR",
+            success: false,
+            message: err.message
+        });
+
+    }
+};
+
+const verifyOtp = async (req, res) => {
+
+    try {
+
+        const userEmail = req.cookies.email;
+        const { otp } = req.body;
+
+        const user = await userModel
+            .findOne({ email: userEmail })
+            .select("+otp +otpExpiresAt");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Account Does Not Exist"
+            });
+        }
+
+        if (user.status === "inactive") {
+            return res.status(400).json({
+                code: "ACCESS_BLOCKED",
+                success: false,
+                message: "Your Account Is Blocked"
+            });
+        };
+
+        if (!user.otp) {
+            return res.status(400).json({
+                code: "ACCESS_DENIED",
+                success: false,
+                message: "Invalid or expired code"
+            });
+        };
+
+        const currentTime = new Date();
+
+        if (user.otpExpiresAt && user.otpExpiresAt < currentTime) {
+            return res.status(429).json({
+                success: false,
+                message: `Code Has Been Expired. Please Try Again`
+            });
+        };
+
+        if (otp !== user.otp) {
+            return res.status(400).json({
+                success: false,
+                message: "Wrong Code"
+            });
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: "OTP verified successfully"
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            code: "SERVER_ERROR",
+            success: false,
+            message: err.message
+        });
+    }
+};
+
 export {
     signup,
     login,
     verifyEmail,
     verifyAccount,
+    passEmail,
+    verifyOtp,
 }

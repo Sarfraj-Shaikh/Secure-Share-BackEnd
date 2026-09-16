@@ -296,9 +296,151 @@ const verifyAccVal = (req, res, next) => {
 
 };
 
+const otpVal = (req, res, next) => {
+
+    try {
+
+        const userEmail = req.cookies.email;
+
+        if (!userEmail) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Request"
+            });
+        };
+
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Bad Request"
+            });
+        };
+
+        const { otp } = req.body;
+
+        if (!otp || otp.trim() === "") {
+            return res.status(400).json({
+                success: false,
+                message: "OTP Is Required"
+            });
+        };
+
+        const cleanOtp = otp.trim();
+
+        if (cleanOtp.length !== 6) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid OTP"
+            });
+        };
+
+        if (!/^\d{6}$/.test(cleanOtp)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid OTP"
+            });
+        };
+
+        next();
+
+    } catch (err) {
+        return res.status(500).json({
+            code: "SERVER_ERROR",
+            success: false,
+            message: err.message
+        });
+    }
+
+};
+
+const passVal = (req, res, next) => {
+
+    try {
+
+        const userEmail = req.cookies.email;
+
+        if (!userEmail) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Request"
+            });
+        };
+
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Bad Request"
+            });
+        };
+
+        const { password } = req.body;
+
+        if (!password || password.trim() === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Password Is Required"
+            });
+        };
+
+        if (!/[A-Z]/.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least contain 1 uppercase character"
+            });
+        };
+
+        if (!/[a-z]/.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least contain 1 lowercase character"
+            });
+        };
+
+        if (!/[0-9]/.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least contain 1 number"
+            });
+        };
+
+        if (!/[!@#$%^&*(),.?":{}|<>_\-+=/\\[\];']/.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least contain 1 special character"
+            });
+        };
+
+        if (typeof password !== "string" || password.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 8 characters"
+            });
+        };
+
+        if (password.trim().length > 100) {
+            return res.status(400).json({
+                success: false,
+                message: "Password cannot exceed 100 characters"
+            });
+        };
+
+        next();
+
+    } catch (err) {
+        return res.status(500).json({
+            code: "SERVER_ERROR",
+            success: false,
+            message: err.message
+        });
+    }
+
+};
+
 export {
     signupVal,
     loginVal,
     emailVal,
     verifyAccVal,
+    otpVal,
+    passVal,
 }
