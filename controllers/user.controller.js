@@ -5,7 +5,6 @@ import nodemailer from "nodemailer";
 import { verifyAccountEmail } from "../templates/verifyAccount.js";
 import { verifyOTPEmail } from "../templates/verifyOtp.js";
 
-
 const signup = async (req, res) => {
 
     try {
@@ -476,6 +475,64 @@ const verifyOtp = async (req, res) => {
     }
 };
 
+const changePass = async (req, res) => {
+
+    try {
+
+        const userEmail = req.cookies.email;
+        const { password } = req.body;
+
+        const user = await userModel
+            .findOne({ email: userEmail })
+            .select("+otp +otpExpiresAt");
+
+        if (!user) {
+            return res.status(400).json({
+                code: "ACCESS_DENIED",
+                success: false,
+                message: "Invalid Request"
+            });
+        };
+
+        if (user.status === "inactive") {
+            return res.status(400).json({
+                code: "ACCESS_BLOCKED",
+                success: false,
+                message: "Your Account Is Blocked"
+            });
+        };
+
+        if (user.otp === null || user.otpExpiresAt === null) {
+            return res.status(400).json({
+                success: false,
+                message: "Request Not Allowed"
+            });
+        };
+
+        const hashPass = await bycrpt.hash(password, 10);
+
+        user.password = hashPass;
+        user.otp = null;
+        user.otpExpiresAt = null;
+        await user.save();
+
+        res.clearCookie("email");
+
+        return res.status(200).json({
+            code: "PASSWORD_CHANGED",
+            success: true,
+            message: "Password updated successfully"
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            code: "SERVER_ERROR",
+            success: false,
+            message: err.message
+        });
+    }
+};
+
 export {
     signup,
     login,
@@ -483,4 +540,5 @@ export {
     verifyAccount,
     passEmail,
     verifyOtp,
+    changePass,
 }

@@ -1,9 +1,10 @@
 import {
+    changePass,
     login, passEmail, signup, verifyAccount, verifyEmail,
     verifyOtp
 } from "../../controllers/user.controller.js"
 import {
-    emailVal, loginVal, otpVal, signupVal, verifyAccVal
+    emailVal, loginVal, otpVal, passVal, signupVal, verifyAccVal
 } from "../../middlewares/user.middleware.js"
 
 export const userEnpoints = (app) => {
@@ -14,6 +15,6 @@ export const userEnpoints = (app) => {
     app.post("/api/verify-account", verifyAccVal, verifyAccount);
     app.post("/api/reset-password", emailVal, passEmail);
     app.post("/api/verify-otp", otpVal, verifyOtp);
-    app.post("/api/change-password", otpVal, verifyOtp);
+    app.post("/api/change-password", passVal, changePass);
 
 }
