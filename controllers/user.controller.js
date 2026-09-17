@@ -228,7 +228,7 @@ const verifyEmail = async (req, res) => {
             secure: process.env.NODE_ENV === "production",
             sameSite: "none",
             path: "/",
-            maxAge: 60 * 1000
+            maxAge: 5 * 60 * 1000,
         });
 
         return res.status(200).json({
@@ -400,14 +400,14 @@ const passEmail = async (req, res) => {
         }
 
         // Cookie valid for exactly 5 minutes
-        // const cookieMaxAge = 5 * 60 * 1000;
+        const cookieMaxAge = 500 * 60 * 1000;
 
         res.cookie("email", user.email, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "none",
             path: "/",
-            // maxAge: cookieMaxAge
+            maxAge: cookieMaxAge
         });
 
         return res.status(200).json({
