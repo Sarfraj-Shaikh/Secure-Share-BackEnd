@@ -439,6 +439,32 @@ const passVal = (req, res, next) => {
 
 };
 
+const userIsAuthVal = (req, res, next) => {
+
+    try {
+
+        const userToken = req.cookies.token;
+
+        if (!userToken) {
+            return res.status(401).json({
+                success: false,
+                code: "UNAUTHORIZED",
+                message: "Authentication token is required."
+            });
+        }
+
+        next();
+
+    } catch (err) {
+        return res.status(500).json({
+            code: "SERVER_ERROR",
+            success: false,
+            message: err.message
+        });
+    }
+
+};
+
 export {
     signupVal,
     loginVal,
@@ -446,4 +472,5 @@ export {
     verifyAccVal,
     otpVal,
     passVal,
+    userIsAuthVal,
 }

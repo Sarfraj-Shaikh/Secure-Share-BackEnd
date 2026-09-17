@@ -541,6 +541,85 @@ const changePass = async (req, res) => {
     }
 };
 
+const userIsAuth = async (req, res) => {
+
+    try {
+
+        const userToken = req.cookies.token;
+        const decodedToken = jwt.verify(userToken, process.env.JWT_SECRET, { algorithms: ["HS256"] });
+
+        const user = await userModel
+            .findById(decodedToken.id)
+            .select("_id name email status verified role reason");
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                code: "USER_NOT_FOUND",
+                message: "User does not exist."
+            });
+        };
+
+        if (user.status === "inactive") {
+            return res.status(403).json({
+                success: false,
+                code: "ACCESS_BLOCKED",
+                message: "Your account is blocked.",
+                user: {
+                    role: user.role,
+                    reason: user.reason
+                }
+            });
+        };
+
+        if (!user.verified) {
+            return res.status(401).json({
+                success: false,
+                code: "NOT_VERIFIED",
+                message: "Your account is not verified."
+            });
+        };
+
+        return res.status(200).json({
+            success: true,
+            code: "AUTHENTICATED",
+            message: "User is authenticated.",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+            }
+        });
+
+    } catch (err) {
+
+        if (err.name === "TokenExpiredError") {
+            return res.status(401).json({
+                success: false,
+                code: "TOKEN_EXPIRED",
+                message: "Your session has expired. Please login again."
+            });
+        }
+
+        if (err.name === "JsonWebTokenError") {
+            return res.status(401).json({
+                success: false,
+                code: "INVALID_TOKEN",
+                message: "Invalid authentication token."
+            });
+        }
+
+        console.error("userIsAuth error:", err);
+
+        return res.status(500).json({
+            success: false,
+            code: "SERVER_ERROR",
+            message: "Something went wrong."
+        });
+    }
+};
+
 export {
     signup,
     login,
@@ -549,4 +628,5 @@ export {
     passEmail,
     verifyOtp,
     changePass,
+    userIsAuth,
 }
