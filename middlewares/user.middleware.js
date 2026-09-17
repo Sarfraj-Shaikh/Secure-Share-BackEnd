@@ -274,6 +274,9 @@ const verifyAccVal = (req, res, next) => {
 
     try {
 
+        console.log("VERIFY ACCOUNT COOKIES:", req.cookies);
+        console.log("VERIFY ACCOUNT TOKEN:", req.cookies?.verifyAccToken);
+
         const verifyToken = req.cookies.verifyAccToken;
 
         if (!verifyToken) {
