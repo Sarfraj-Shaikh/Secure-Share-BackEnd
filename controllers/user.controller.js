@@ -152,6 +152,14 @@ const verifyEmail = async (req, res) => {
             });
         };
 
+        if (user.status === "inactive") {
+            return res.status(401).json({
+                code: "ACCESS_BLOCKED",
+                success: false,
+                message: "Account Blocked"
+            });
+        };
+
         if (user.verified) {
             return res.status(400).json({
                 code: "ALREADY_VERIFIED",
