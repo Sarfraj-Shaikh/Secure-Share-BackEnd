@@ -223,6 +223,9 @@ const verifyEmail = async (req, res) => {
 
         await user.save();
 
+        console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("Setting verifyAccToken:", hashedOtp);
+
         res.cookie("verifyAccToken", hashedOtp, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -231,6 +234,8 @@ const verifyEmail = async (req, res) => {
             maxAge: 5 * 60 * 1000,
         });
 
+console.log("Set-Cookie headers:", res.getHeader("Set-Cookie"));
+        
         return res.status(200).json({
             success: true,
             message: "Verification email sent successfully"
