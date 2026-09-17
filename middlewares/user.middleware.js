@@ -280,7 +280,7 @@ const verifyAccVal = (req, res, next) => {
             return res.status(400).json({
                 code: "ACCESS_DENIED",
                 success: false,
-                message: "Bad Request"
+                message: "Bad Request" + verifyToken
             });
         };
 
