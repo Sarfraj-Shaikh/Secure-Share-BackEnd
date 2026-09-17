@@ -228,6 +228,7 @@ const verifyEmail = async (req, res) => {
             secure: process.env.NODE_ENV === "production",
             sameSite: "none",
             path: "/",
+            maxAge: 60 * 1000
         });
 
         return res.status(200).json({
