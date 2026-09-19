@@ -18,6 +18,6 @@ export const userEnpoints = (app) => {
     app.post("/api/reset-password", otpLimiter, emailVal, passEmail);
     app.post("/api/verify-otp", verifyOtpLimiter, otpVal, verifyOtp);
     app.post("/api/change-password", changePassLimiter, passVal, changePass);
-    app.get("/api/isAuth", userIsAuthLimiter, userIsAuthVal, userIsAuth);
+    app.post("/api/isAuth", userIsAuthLimiter, userIsAuthVal, userIsAuth);
 
 }

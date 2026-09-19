@@ -555,14 +555,6 @@ const userIsAuth = async (req, res) => {
             });
         };
 
-        if (!user.verified) {
-            return res.status(401).json({
-                success: false,
-                code: "NOT_VERIFIED",
-                message: "Your account is not verified."
-            });
-        };
-
         return res.status(200).json({
             success: true,
             code: "AUTHENTICATED",
@@ -572,6 +564,7 @@ const userIsAuth = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                verified: user.verified,
             }
         });
 
@@ -592,8 +585,6 @@ const userIsAuth = async (req, res) => {
                 message: "Invalid authentication token."
             });
         }
-
-        console.error("userIsAuth error:", err);
 
         return res.status(500).json({
             success: false,
