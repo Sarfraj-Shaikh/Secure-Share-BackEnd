@@ -528,8 +528,8 @@ const userIsAuth = async (req, res) => {
 
     try {
 
-        const userToken = req.cookies.token;
-        const decodedToken = jwt.verify(userToken, process.env.JWT_SECRET, { algorithms: ["HS256"] });
+        const { token } = req.body;
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
 
         const user = await userModel
             .findById(decodedToken.id)
