@@ -390,17 +390,6 @@ const passEmail = async (req, res) => {
             });
         }
 
-        // Cookie valid for exactly 5 minutes
-        const cookieMaxAge = 500 * 60 * 1000;
-
-        res.cookie("email", user.email, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "none",
-            path: "/",
-            maxAge: cookieMaxAge
-        });
-
         return res.status(200).json({
             success: true,
             message: "OTP email sent successfully"
@@ -421,8 +410,7 @@ const verifyOtp = async (req, res) => {
 
     try {
 
-        const userEmail = req.cookies.email;
-        const { otp } = req.body;
+        const { otp, email: userEmail } = req.body;
 
         const user = await userModel
             .findOne({ email: userEmail })
@@ -485,8 +473,7 @@ const changePass = async (req, res) => {
 
     try {
 
-        const userEmail = req.cookies.email;
-        const { password } = req.body;
+        const { password, email: userEmail } = req.body;
 
         const user = await userModel
             .findOne({ email: userEmail })
@@ -521,8 +508,6 @@ const changePass = async (req, res) => {
         user.otp = null;
         user.otpExpiresAt = null;
         await user.save();
-
-        res.clearCookie("email");
 
         return res.status(200).json({
             code: "PASSWORD_CHANGED",
