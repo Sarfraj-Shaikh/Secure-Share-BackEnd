@@ -317,7 +317,7 @@ const otpVal = (req, res, next) => {
 
     try {
 
-        const userEmail = req.cookies.email;
+        const { email: userEmail, otp } = req.body;
 
         if (!userEmail) {
             return res.status(400).json({
@@ -332,8 +332,6 @@ const otpVal = (req, res, next) => {
                 message: "Bad Request"
             });
         };
-
-        const { otp } = req.body;
 
         if (!otp || otp.trim() === "") {
             return res.status(400).json({
@@ -374,7 +372,7 @@ const passVal = (req, res, next) => {
 
     try {
 
-        const userEmail = req.cookies.email;
+        const { email: userEmail, password } = req.body;
 
         if (!userEmail) {
             return res.status(400).json({
@@ -389,8 +387,6 @@ const passVal = (req, res, next) => {
                 message: "Bad Request"
             });
         };
-
-        const { password } = req.body;
 
         if (!password || password.trim() === "") {
             return res.status(400).json({
