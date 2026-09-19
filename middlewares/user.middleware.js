@@ -453,13 +453,13 @@ const userIsAuthVal = (req, res, next) => {
 
     try {
 
-        const userToken = req.cookies.token;
+        const { token } = req.body;
 
-        if (!userToken) {
+        if (!token) {
             return res.status(401).json({
                 success: false,
                 code: "UNAUTHORIZED",
-                message: "Authentication token is required."
+                message: "Authentication Token Is Required."
             });
         }
 
