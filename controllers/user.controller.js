@@ -222,7 +222,7 @@ const verifyEmail = async (req, res) => {
         );
 
         await user.save();
-
+        
         return res.status(200).json({
             success: true,
             message: "Verification Email Sent Successfully"
