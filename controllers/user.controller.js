@@ -145,7 +145,7 @@ const verifyEmail = async (req, res) => {
 
         const user = await userModel
             .findOne({ email })
-            .select("+otp +otpExpiresAt");
+            .select("+otp +otpExpiresAt +token");
 
         if (!user) {
             return res.status(404).json({
@@ -189,11 +189,12 @@ const verifyEmail = async (req, res) => {
             });
         }
 
-        // Secure 6 digit OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-        // HASH OTP
-        const hashedOtp = await bycrpt.hash(otp, 10);
+        // Secure Verification Token
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRE, }
+        );
 
         // Mail transporter
         const transporter = nodemailer.createTransport({
@@ -204,7 +205,7 @@ const verifyEmail = async (req, res) => {
             }
         });
 
-        const verifyUrl = `${process.env.FRONTEND_URL}/verify-account`;
+        const verifyUrl = `${process.env.FRONTEND_URL}/verify-account?token=${token}`;
 
         // EMAIL SEND
         const mailOptions = {
@@ -216,24 +217,15 @@ const verifyEmail = async (req, res) => {
 
         await transporter.sendMail(mailOptions);
 
-        user.otp = hashedOtp;
         user.otpExpiresAt = new Date(
             currentTime.getTime() + 60 * 1000
         );
 
         await user.save();
 
-        res.cookie("verifyAccToken", hashedOtp, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "none",
-            path: "/",
-            maxAge: 5 * 60 * 1000,
-        });
-
         return res.status(200).json({
             success: true,
-            message: "Verification email sent successfully"
+            message: "Verification Email Sent Successfully"
         });
 
     } catch (err) {
@@ -249,10 +241,26 @@ const verifyAccount = async (req, res) => {
 
     try {
 
-        const verifyToken = req.cookies.verifyAccToken;
+        const { token } = req.query;
+
+        let decodedToken;
+
+        try {
+
+            decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        } catch (err) {
+
+            return res.status(400).json({
+                code: "ACCESS_DENIED",
+                success: false,
+                message: "Invalid or expired token"
+            });
+
+        }
 
         const user = await userModel
-            .findOne({ otp: verifyToken })
+            .findById(decodedToken?.id)
             .select("+otp +otpExpiresAt");
 
         if (!user) {
@@ -271,19 +279,9 @@ const verifyAccount = async (req, res) => {
             });
         };
 
-        if (verifyToken !== user.otp) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid Verification Request"
-            });
-        }
-
         user.verified = true;
-        user.otp = null;
         user.otpExpiresAt = null;
         await user.save();
-
-        res.clearCookie("verifyAccToken");
 
         return res.status(200).json({
             code: "ACCOUNT_VERIFIED",

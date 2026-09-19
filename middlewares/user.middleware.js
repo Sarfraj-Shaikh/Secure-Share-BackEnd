@@ -237,12 +237,30 @@ const emailVal = (req, res, next) => {
 
         const { email } = req.body;
 
-        if (!email || email.trim() === "") {
+        if (typeof email !== "string" || email.trim() === "") {
             return res.status(400).json({
                 success: false,
                 message: "Email Is Required"
             });
         };
+
+        const cleanEmail = email.trim();
+
+        if (/\p{Extended_Pictographic}/u.test(cleanEmail)) {
+            return res.status(400).json({
+                success: false,
+                message: "Email cannot contain emojis"
+            });
+        };
+
+        if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(cleanEmail)) {
+            return res.status(400).json({
+                success: false,
+                message: "Please enter a valid email address"
+            });
+        };
+
+        req.body.email = cleanEmail.toLowerCase();
 
         if (/[\p{Extended_Pictographic}]/u.test(email)) {
             return res.status(400).json({
@@ -274,15 +292,14 @@ const verifyAccVal = (req, res, next) => {
 
     try {
 
-        const verifyToken = req.cookies.verifyAccToken;
+        const { token } = req.query;
 
-        if (!verifyToken) {
+        if (!token || typeof token !== "string" || token.trim() === "") {
             return res.status(400).json({
-                code: "ACCESS_DENIED",
                 success: false,
-                message: "Bad Request"
+                message: "Verification Token Is Required"
             });
-        };
+        }
 
         next();
 
