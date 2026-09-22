@@ -20,4 +20,6 @@ export const userEnpoints = (app) => {
     app.post("/api/change-password", changePassLimiter, passVal, changePass);
     app.post("/api/isAuth", userIsAuthLimiter, userIsAuthVal, userIsAuth);
 
+    app.post("/api/folders", userIsAuthLimiter, userIsAuthVal, userIsAuth);
+
 }
