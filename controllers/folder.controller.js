@@ -103,7 +103,7 @@ const FetchFolder = async (req, res) => {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
 
         const limit = 10;
-        const pageNo = Number(req.query.page) || 1;
+        const pageNo = Math.max(Number(req.query.page) || 1, 1);
         const skip = (pageNo - 1) * limit;
 
         const folders = await folderModel
