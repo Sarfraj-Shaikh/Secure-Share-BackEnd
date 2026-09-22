@@ -141,6 +141,62 @@ const FetchFolder = async (req, res) => {
 
 };
 
+const UpdateFolder = async (req, res) => {
+
+    try {
+
+        const token = req.headers.authorization;
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        const folderId = req.params.id;
+        const { name, color, isFavorite } = req.body;
+
+        const updatePayload = {};
+
+        if (name !== undefined) {
+            updatePayload.name = name.trim();
+        }
+
+        if (color !== undefined) {
+            updatePayload.color = color.trim();
+        }
+
+        if (isFavorite !== undefined) {
+            updatePayload.isFavorite = isFavorite;
+        }
+
+        const folder = await folderModel
+            .findOneAndUpdate(
+                { _id: folderId, userId: decodedToken.id },
+                { $set: updatePayload },
+                { new: true, runValidators: true }
+            );
+
+        if (!folder) {
+            return res.status(404).json({
+                success: false,
+                code: "FOLDER_NOT_FOUND",
+                message: "Folder not found.",
+            });
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: "Folder Updated Successfully.",
+        });
+
+    } catch (err) {
+
+        return res.status(500).json({
+            success: false,
+            code: "SERVER_ERROR",
+            message: "Something Went Wrong.",
+        });
+
+    }
+
+};
+
 const DeleteFolder = async (req, res) => {
 
     try {
@@ -187,5 +243,6 @@ const DeleteFolder = async (req, res) => {
 export {
     CreateFolder,
     FetchFolder,
+    UpdateFolder,
     DeleteFolder,
 }

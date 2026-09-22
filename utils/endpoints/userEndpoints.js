@@ -1,11 +1,11 @@
-import { CreateFolder, DeleteFolder, FetchFolder } from "../../controllers/folder.controller.js";
+import { CreateFolder, DeleteFolder, FetchFolder, UpdateFolder } from "../../controllers/folder.controller.js";
 import {
     changePass,
     login, passEmail, signup, userIsAuth, verifyAccount, verifyEmail,
     verifyOtp
 } from "../../controllers/user.controller.js"
 import { roleValidation } from "../../middlewares/authorization.middleware.js";
-import { CreateFolderVal, DeleteFolderVal } from "../../middlewares/folder.middleware.js";
+import { CreateFolderVal, DeleteFolderVal, UpdateFolderVal } from "../../middlewares/folder.middleware.js";
 import {
     emailVal, loginVal, otpVal, passVal, signupVal, userIsAuthVal, verifyAccVal
 } from "../../middlewares/user.middleware.js"
@@ -25,6 +25,7 @@ export const userEnpoints = (app) => {
 
     app.post("/api/folders", CreateFolderVal, CreateFolder);
     app.get("/api/folders", roleValidation, FetchFolder);
+    app.put("/api/folders/:id", UpdateFolderVal, roleValidation, UpdateFolder);
     app.delete("/api/folders/:id", DeleteFolderVal, roleValidation, DeleteFolder);
 
 }
