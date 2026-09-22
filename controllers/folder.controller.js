@@ -5,8 +5,9 @@ import folderModel from "../models/folder.model.js";
 const CreateFolder = async (req, res) => {
 
     try {
-        const { name, color, token } = req.body;
+        const { name, color } = req.body;
 
+        const token = req.headers.authorization;
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
 
         const user = await userModel
@@ -63,6 +64,7 @@ const CreateFolder = async (req, res) => {
         };
 
         res.status(201).json({
+            success: true,
             message: "Folder Created Successful"
         });
 
