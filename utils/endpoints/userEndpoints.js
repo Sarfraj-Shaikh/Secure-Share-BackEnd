@@ -1,8 +1,10 @@
+import { CreateFolder } from "../../controllers/folder.controller.js";
 import {
     changePass,
     login, passEmail, signup, userIsAuth, verifyAccount, verifyEmail,
     verifyOtp
 } from "../../controllers/user.controller.js"
+import { CreateFolderVal } from "../../middlewares/folder.middleware.js";
 import {
     emailVal, loginVal, otpVal, passVal, signupVal, userIsAuthVal, verifyAccVal
 } from "../../middlewares/user.middleware.js"
@@ -20,6 +22,6 @@ export const userEnpoints = (app) => {
     app.post("/api/change-password", changePassLimiter, passVal, changePass);
     app.post("/api/isAuth", userIsAuthLimiter, userIsAuthVal, userIsAuth);
 
-    app.post("/api/folders", userIsAuthLimiter, userIsAuthVal, userIsAuth);
+    app.post("/api/folders", CreateFolderVal, CreateFolder);
 
 }

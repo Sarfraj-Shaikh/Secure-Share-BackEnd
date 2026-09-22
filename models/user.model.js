@@ -67,7 +67,7 @@ const userSchema = new Schema({
     },
     totalFolders: {
         type: Number,
-        default: 0,
+        default: 1,
         min: [0, "Total folders cannot be negative"],
     },
     usedFolders: {
@@ -77,7 +77,7 @@ const userSchema = new Schema({
     },
     totalShareLimit: {
         type: Number,
-        default: 0,
+        default: 3,
         min: [0, "Total share limit cannot be negative"],
     },
     usedShareLimit: {
@@ -87,7 +87,7 @@ const userSchema = new Schema({
     },
     storageLimit: {
         type: Number,
-        default: 0,
+        default: 50 * 1024 * 1024, // 50 MB
         min: [0, "Storage limit cannot be negative"],
     },
     usedStorage: {
