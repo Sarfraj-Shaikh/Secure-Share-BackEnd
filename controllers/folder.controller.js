@@ -19,7 +19,7 @@ const CreateFolder = async (req, res) => {
                 code: "USER_NOT_FOUND",
                 message: "User not found.",
             });
-        }
+        };
 
         if (user.status === "inactive") {
             return res.status(403).json({
@@ -75,7 +75,7 @@ const CreateFolder = async (req, res) => {
                 code: "TOKEN_EXPIRED",
                 message: "Token Has Expired."
             });
-        }
+        };
 
         if (err.name === "JsonWebTokenError") {
             return res.status(401).json({
@@ -83,7 +83,46 @@ const CreateFolder = async (req, res) => {
                 code: "INVALID_TOKEN",
                 message: "Invalid Authentication Token."
             });
-        }
+        };
+
+        return res.status(500).json({
+            success: false,
+            code: "SERVER_ERROR",
+            message: "Something Went Wrong."
+        });
+
+    }
+
+};
+
+const FetchFolder = async (req, res) => {
+
+    try {
+
+        const token = req.headers.authorization;
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        const limit = 10;
+        const pageNo = Number(req.query.page) || 1;
+        const skip = (pageNo - 1) * limit;
+
+        const folders = await folderModel
+            .find({ userId: decodedToken.id })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalDocs = await folderModel.countDocuments({ userId: decodedToken.id });
+        const totalPages = Math.floor(totalDocs / limit);
+
+        res.status(200).json({
+            message: "Folders Fetched Successful",
+            folders,
+            totalPages,
+        });
+
+
+    } catch (err) {
 
         return res.status(500).json({
             success: false,
@@ -97,4 +136,5 @@ const CreateFolder = async (req, res) => {
 
 export {
     CreateFolder,
+    FetchFolder,
 }

@@ -4,6 +4,7 @@ import {
     login, passEmail, signup, userIsAuth, verifyAccount, verifyEmail,
     verifyOtp
 } from "../../controllers/user.controller.js"
+import { roleValidation } from "../../middlewares/authorization.middleware.js";
 import { CreateFolderVal } from "../../middlewares/folder.middleware.js";
 import {
     emailVal, loginVal, otpVal, passVal, signupVal, userIsAuthVal, verifyAccVal
@@ -23,6 +24,6 @@ export const userEnpoints = (app) => {
     app.post("/api/isAuth", userIsAuthLimiter, userIsAuthVal, userIsAuth);
 
     app.post("/api/folders", CreateFolderVal, CreateFolder);
-    app.get("/api/folders", CreateFolderVal, CreateFolder);
+    app.get("/api/folders", roleValidation, CreateFolder);
 
 }
