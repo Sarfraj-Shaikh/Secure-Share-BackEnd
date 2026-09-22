@@ -141,7 +141,44 @@ const FetchFolder = async (req, res) => {
 
 };
 
+const DeleteFolder = async (req, res) => {
+
+    try {
+
+        const token = req.headers.authorization;
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        const folderId = req.params.id;
+
+        const folder = await folderModel.findOneAndDelete({ _id: folderId, userId: decodedToken.id, });
+
+        if (!folder) {
+            return res.status(404).json({
+                success: false,
+                code: "FOLDER_NOT_FOUND",
+                message: "Folder not found.",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Folder Deleted Successfully.",
+        });
+
+    } catch (err) {
+
+        return res.status(500).json({
+            success: false,
+            code: "SERVER_ERROR",
+            message: "Something Went Wrong.",
+        });
+
+    }
+
+};
+
 export {
     CreateFolder,
     FetchFolder,
+    DeleteFolder,
 }

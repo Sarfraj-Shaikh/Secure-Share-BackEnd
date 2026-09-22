@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 const CreateFolderVal = async (req, res, next) => {
 
     try {
@@ -41,6 +43,43 @@ const CreateFolderVal = async (req, res, next) => {
 
 };
 
+const DeleteFolderVal = async (req, res, next) => {
+
+    try {
+
+        const folderId = req.params.id;
+
+        if (!folderId || folderId.trim() === "") {
+            return res.status(400).json({
+                success: false,
+                code: "FOLDER_ID_REQUIRED",
+                message: "Folder ID is required.",
+            });
+        }
+
+        if (!mongoose.isValidObjectId(folderId)) {
+            return res.status(400).json({
+                success: false,
+                code: "INVALID_FOLDER_ID",
+                message: "Invalid folder ID.",
+            });
+        }
+
+        next();
+
+    } catch (err) {
+
+        return res.status(500).json({
+            code: "SERVER_ERROR",
+            success: false,
+            message: err.message
+        });
+
+    }
+
+};
+
 export {
     CreateFolderVal,
+    DeleteFolderVal,
 }
