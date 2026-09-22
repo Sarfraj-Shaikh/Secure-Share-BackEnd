@@ -106,21 +106,28 @@ const FetchFolder = async (req, res) => {
         const pageNo = Math.max(Number(req.query.page) || 1, 1);
         const skip = (pageNo - 1) * limit;
 
-        const folders = await folderModel
-            .find({ userId: decodedToken.id })
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
+        const filter = { userId: decodedToken.id, };
 
-        const totalDocs = await folderModel.countDocuments({ userId: decodedToken.id });
+        const [folders, totalDocs] = await Promise.all([
+            folderModel
+                .find(filter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+
+            folderModel.countDocuments(filter),
+        ]);
+
         const totalPages = Math.ceil(totalDocs / limit);
 
-        res.status(200).json({
-            message: "Folders Fetched Successful",
+        return res.status(200).json({
+            success: true,
+            message: "Folders Fetched Successfully.",
             folders,
+            currentPage: pageNo,
             totalPages,
+            totalDocs,
         });
-
 
     } catch (err) {
 

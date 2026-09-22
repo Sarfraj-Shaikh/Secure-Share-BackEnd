@@ -25,5 +25,6 @@ export const userEnpoints = (app) => {
 
     app.post("/api/folders", CreateFolderVal, CreateFolder);
     app.get("/api/folders", roleValidation, FetchFolder);
+    app.delete("/api/folders", roleValidation, FetchFolder);
 
 }
