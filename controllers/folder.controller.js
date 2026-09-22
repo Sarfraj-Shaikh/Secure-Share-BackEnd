@@ -158,7 +158,14 @@ const DeleteFolder = async (req, res) => {
                 code: "FOLDER_NOT_FOUND",
                 message: "Folder not found.",
             });
-        }
+        };
+
+        const user = await userModel.findById(decodedToken.id);
+
+        if (user) {
+            user.usedFolders = Math.max(user.usedFolders - 1, 0);
+            await user.save();
+        };
 
         return res.status(200).json({
             success: true,
