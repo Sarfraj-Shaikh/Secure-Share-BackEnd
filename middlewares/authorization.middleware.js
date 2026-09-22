@@ -18,7 +18,7 @@ const roleValidation = async (req, res, next) => {
 
         const user = await userModel
             .findById(decodedToken.id)
-            .select("reason role");
+            .select("role");
 
         if (!user) {
             return res.status(404).json({

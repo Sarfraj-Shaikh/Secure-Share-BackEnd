@@ -113,7 +113,7 @@ const FetchFolder = async (req, res) => {
             .limit(limit);
 
         const totalDocs = await folderModel.countDocuments({ userId: decodedToken.id });
-        const totalPages = Math.floor(totalDocs / limit);
+        const totalPages = Math.ceil(totalDocs / limit);
 
         res.status(200).json({
             message: "Folders Fetched Successful",
