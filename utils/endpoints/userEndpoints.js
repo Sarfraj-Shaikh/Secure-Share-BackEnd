@@ -1,4 +1,4 @@
-import { CreateFolder } from "../../controllers/folder.controller.js";
+import { CreateFolder, FetchFolder } from "../../controllers/folder.controller.js";
 import {
     changePass,
     login, passEmail, signup, userIsAuth, verifyAccount, verifyEmail,
@@ -24,6 +24,6 @@ export const userEnpoints = (app) => {
     app.post("/api/isAuth", userIsAuthLimiter, userIsAuthVal, userIsAuth);
 
     app.post("/api/folders", CreateFolderVal, CreateFolder);
-    app.get("/api/folders", roleValidation, CreateFolder);
+    app.get("/api/folders", roleValidation, FetchFolder);
 
 }
