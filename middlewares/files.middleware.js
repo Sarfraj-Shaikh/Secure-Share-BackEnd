@@ -81,6 +81,42 @@ const uploadFileVal = async (req, res, next) => {
     }
 };
 
+const fetchFileVal = async (req, res, next) => {
+
+    try {
+
+        const folderId = req.query.folder;
+
+        if (!folderId) {
+            return res.status(400).json({
+                success: false,
+                code: "FOLDER_ID_REQUIRED",
+                message: "Folder ID is required."
+            });
+        }
+
+        if (!folderId || !mongoose.Types.ObjectId.isValid(folderId)) {
+            return res.status(400).json({
+                success: false,
+                code: "INVALID_FOLDER_ID",
+                message: "Valid Folder ID is required."
+            });
+        }
+
+        next();
+
+    } catch (err) {
+
+        return res.status(500).json({
+            code: "SERVER_ERROR",
+            success: false,
+            message: err.message
+        });
+
+    }
+
+};
+
 const UpdateFileVal = async (req, res, next) => {
 
     try {
@@ -217,4 +253,5 @@ export {
     uploadFileVal,
     UpdateFileVal,
     DeleteFileVal,
+    fetchFileVal,
 };

@@ -106,16 +106,29 @@ const fetchFiles = async (req, res) => {
         const pageNo = Math.max(Number(req.query.page) || 1, 1);
         const skip = (pageNo - 1) * limit;
 
-        const filter = { userId: decodedToken.id, };
+        const folderId = req.query.folder;
 
-        const [folders, totalDocs] = await Promise.all([
+        if (!folderId) {
+            return res.status(400).json({
+                success: false,
+                code: "FOLDER_ID_REQUIRED",
+                message: "Folder ID is required."
+            });
+        }
+
+        const filter = {
+            userId: decodedToken.id,
+            folderId: folderId
+        };
+
+        const [files, totalDocs] = await Promise.all([
             filesModel
                 .find(filter)
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit),
 
-            filesModel.countDocuments(filter),
+            filesModel.countDocuments(filter)
         ]);
 
         const totalPages = Math.ceil(totalDocs / limit);
@@ -123,7 +136,7 @@ const fetchFiles = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Files Fetched Successfully.",
-            folders,
+            files,
             currentPage: pageNo,
             totalPages,
             totalDocs,
