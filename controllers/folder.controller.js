@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import userModel from "../models/user.model.js";
 import folderModel from "../models/folder.model.js";
+import filesModel from "../models/files.model.js";
 
 const CreateFolder = async (req, res) => {
 
@@ -263,6 +264,8 @@ const DeleteFolder = async (req, res) => {
                 message: "Folder not found.",
             });
         };
+
+        await filesModel.deleteMany({ folderId: folderId, userId: decodedToken.id, });
 
         const user = await userModel.findById(decodedToken.id);
 
