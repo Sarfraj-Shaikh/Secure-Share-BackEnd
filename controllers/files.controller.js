@@ -229,6 +229,13 @@ const deleteFile = async (req, res) => {
             });
         };
 
+        const folder = await folderModel.findById(files.folderId);
+
+        if (folder) {
+            folder.totalFiles -= 1;
+            await folder.save();
+        }
+
         const user = await userModel.findById(decodedToken.id);
 
         if (user) {
