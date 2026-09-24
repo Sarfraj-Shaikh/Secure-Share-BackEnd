@@ -143,6 +143,52 @@ const FetchFolder = async (req, res) => {
 
 };
 
+const FetchFavFolder = async (req, res) => {
+
+    try {
+
+        const token = req.headers.authorization;
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        const limit = 10;
+        const pageNo = Math.max(Number(req.query.page) || 1, 1);
+        const skip = (pageNo - 1) * limit;
+
+        const filter = { userId: decodedToken.id, };
+
+        const [folders, totalDocs] = await Promise.all([
+            folderModel
+                .find(filter)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+
+            folderModel.countDocuments(filter),
+        ]);
+
+        const totalPages = Math.ceil(totalDocs / limit);
+
+        return res.status(200).json({
+            success: true,
+            message: "Folders Fetched Successfully.",
+            folders,
+            currentPage: pageNo,
+            totalPages,
+            totalDocs,
+        });
+
+    } catch (err) {
+
+        return res.status(500).json({
+            success: false,
+            code: "SERVER_ERROR",
+            message: "Something Went Wrong."
+        });
+
+    }
+
+};
+
 const UpdateFolder = async (req, res) => {
 
     try {
@@ -247,4 +293,5 @@ export {
     FetchFolder,
     UpdateFolder,
     DeleteFolder,
+    FetchFavFolder,
 }

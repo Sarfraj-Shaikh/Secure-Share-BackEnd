@@ -1,5 +1,5 @@
 import { deleteFile, fetchFiles, updateFile, uploadFile } from "../../controllers/files.controller.js";
-import { CreateFolder, DeleteFolder, FetchFolder, UpdateFolder } from "../../controllers/folder.controller.js";
+import { CreateFolder, DeleteFolder, FetchFavFolder, FetchFolder, UpdateFolder } from "../../controllers/folder.controller.js";
 import {
     changePass,
     login, passEmail, signup, userIsAuth, verifyAccount, verifyEmail,
@@ -29,6 +29,8 @@ export const userEnpoints = (app) => {
     app.get("/api/folders", roleValidation, FetchFolder);
     app.put("/api/folders/:id", UpdateFolderVal, roleValidation, UpdateFolder);
     app.delete("/api/folders/:id", DeleteFolderVal, roleValidation, DeleteFolder);
+
+    app.get("/api/fav-folders", roleValidation, FetchFavFolder);
 
     app.post("/api/file", roleValidation, uploadSingleFile, uploadFileVal, uploadFile);
     app.get("/api/file", roleValidation, fetchFileVal, fetchFiles);
