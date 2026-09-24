@@ -141,8 +141,113 @@ const fetchFiles = async (req, res) => {
 
 };
 
+const updateFile = async (req, res) => {
+
+    try {
+
+        const token = req.headers.authorization;
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        const fileId = req.params.id;
+        const { fileName, folderId, password, expiresAt } = req.body;
+
+        const updatePayload = {};
+
+        if (fileName !== undefined) {
+            updatePayload.fileName = fileName.trim();
+        }
+
+        if (folderId !== undefined) {
+            updatePayload.folderId = folderId.trim();
+        }
+
+        if (password !== undefined) {
+            updatePayload.password = password.trim();
+        }
+
+        if (expiresAt !== undefined) {
+            updatePayload.expiresAt = expiresAt.trim();
+        }
+
+        const files = await folderModel
+            .findOneAndUpdate(
+                { _id: fileId, userId: decodedToken.id },
+                { $set: updatePayload },
+                { new: true, runValidators: true }
+            );
+
+        if (!files) {
+            return res.status(404).json({
+                success: false,
+                code: "FOLDER_NOT_FOUND",
+                message: "Folder not found.",
+            });
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: "Folder Updated Successfully.",
+        });
+
+    } catch (err) {
+
+        return res.status(500).json({
+            success: false,
+            code: "SERVER_ERROR",
+            message: "Something Went Wrong.",
+        });
+
+    }
+
+};
+
+const deleteFile = async (req, res) => {
+
+    try {
+
+        const token = req.headers.authorization;
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        const folderId = req.params.id;
+
+        const folder = await folderModel.findOneAndDelete({ _id: folderId, userId: decodedToken.id, });
+
+        if (!folder) {
+            return res.status(404).json({
+                success: false,
+                code: "FOLDER_NOT_FOUND",
+                message: "Folder not found.",
+            });
+        };
+
+        const user = await userModel.findById(decodedToken.id);
+
+        if (user) {
+            user.usedFolders = Math.max(user.usedFolders - 1, 0);
+            await user.save();
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: "Folder Deleted Successfully.",
+        });
+
+    } catch (err) {
+
+        return res.status(500).json({
+            success: false,
+            code: "SERVER_ERROR",
+            message: "Something Went Wrong.",
+        });
+
+    }
+
+};
+
 export {
     uploadFile,
     uploadToCloudinary,
     fetchFiles,
+    updateFile,
+    deleteFile
 };
