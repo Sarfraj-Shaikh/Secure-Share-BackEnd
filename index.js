@@ -1,10 +1,9 @@
-import dotenv from "dotenv"
-dotenv.config();
+import "dotenv/config";
 
 import express from "express";
+import morgan from "morgan";
 import ConnectDB from "./config/db.js";
 import cors from "cors";
-import cookieParser from "cookie-parser";
 
 import { userEnpoints } from "./utils/endpoints/userEndpoints.js";
 import { adminEnpoints } from "./utils/endpoints/adminEndpoints.js";
@@ -14,7 +13,7 @@ ConnectDB();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(morgan("dev"));
 app.use(cors({
     origin: process.env.FRONTEND_URL, // frontend URL
     credentials: true
