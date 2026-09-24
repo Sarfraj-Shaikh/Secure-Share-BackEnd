@@ -169,7 +169,7 @@ const updateFile = async (req, res) => {
             updatePayload.expiresAt = expiresAt.trim();
         }
 
-        const files = await folderModel
+        const files = await filesModel
             .findOneAndUpdate(
                 { _id: fileId, userId: decodedToken.id },
                 { $set: updatePayload },
@@ -208,15 +208,15 @@ const deleteFile = async (req, res) => {
         const token = req.headers.authorization;
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
 
-        const folderId = req.params.id;
+        const fileId = req.params.id;
 
-        const folder = await folderModel.findOneAndDelete({ _id: folderId, userId: decodedToken.id, });
+        const folder = await folderModel.findOneAndDelete({ _id: fileId, userId: decodedToken.id, });
 
         if (!folder) {
             return res.status(404).json({
                 success: false,
-                code: "FOLDER_NOT_FOUND",
-                message: "Folder not found.",
+                code: "FILE_NOT_FOUND",
+                message: "File not found.",
             });
         };
 
