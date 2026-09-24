@@ -35,6 +35,9 @@ const uploadSingleFile = (req, res, next) => {
             });
         }
 
+        console.log("MULTER FILE:", req.file?.size);
+        console.log("MULTER ERROR:", err);
+
         next();
     });
 };
