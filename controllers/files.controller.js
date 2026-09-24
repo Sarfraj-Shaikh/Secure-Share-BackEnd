@@ -8,18 +8,18 @@ const uploadToCloudinary = (fileBuffer, folder) => {
     return new Promise((resolve, reject) => {
 
         const stream = cloudinary.uploader.upload_stream(
-            {
-                folder,
-                resource_type: "auto",
-            },
+            { folder, resource_type: "auto", },
             (error, result) => {
 
                 if (error) {
-                    reject(error);
-                } else {
-                    resolve(result);
-                }
 
+                    reject(error);
+
+                } else {
+
+                    resolve(result);
+
+                }
             }
         );
 
@@ -72,7 +72,7 @@ const uploadFile = async (req, res) => {
             fileLink: cloudinaryResult.secure_url,
         });
 
-        if(newFile) {
+        if (newFile) {
             user.usedStorage += file.size
             user.save();
         }
