@@ -179,14 +179,14 @@ const updateFile = async (req, res) => {
         if (!files) {
             return res.status(404).json({
                 success: false,
-                code: "FOLDER_NOT_FOUND",
-                message: "Folder not found.",
+                code: "FILE_NOT_FOUND",
+                message: "File not found.",
             });
         };
 
         return res.status(200).json({
             success: true,
-            message: "Folder Updated Successfully.",
+            message: "File Updated Successfully.",
         });
 
     } catch (err) {
