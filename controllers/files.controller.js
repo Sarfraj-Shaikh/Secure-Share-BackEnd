@@ -46,10 +46,10 @@ const uploadFile = async (req, res) => {
         const { fileName, folderId } = req.body;
         const file = req.file;
 
-        if (file.size > 2 * 1024 * 1024) {
+        if (file.size > 10 * 1024 * 1024) {
             return res.status(400).json({
                 success: false,
-                message: "File size cannot exceed 2 MB",
+                message: "File size cannot exceed 10 MB",
             });
         }
 
