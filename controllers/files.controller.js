@@ -107,19 +107,7 @@ const fetchFiles = async (req, res) => {
         const skip = (pageNo - 1) * limit;
 
         const folderId = req.query.folder;
-
-        if (!folderId) {
-            return res.status(400).json({
-                success: false,
-                code: "FOLDER_ID_REQUIRED",
-                message: "Folder ID is required."
-            });
-        }
-
-        const filter = {
-            userId: decodedToken.id,
-            folderId: folderId
-        };
+        const filter = { userId: decodedToken.id, folderId: folderId };
 
         const [files, totalDocs] = await Promise.all([
             filesModel
