@@ -9,6 +9,37 @@ const multerUpload = multer({
     },
 });
 
+const uploadSingleFile = (req, res, next) => {
+
+    multerUpload.single("file")(req, res, (err) => {
+
+        if (err instanceof multer.MulterError) {
+
+            if (err.code === "LIMIT_FILE_SIZE") {
+                return res.status(400).json({
+                    success: false,
+                    message: "File size cannot exceed 1 MB",
+                });
+            }
+
+            return res.status(400).json({
+                success: false,
+                message: err.message,
+            });
+        }
+
+        if (err) {
+            return res.status(400).json({
+                success: false,
+                message: err.message,
+            });
+        }
+
+        next();
+    });
+};
+
+
 const uploadFileVal = async (req, res, next) => {
 
     try {
@@ -50,6 +81,6 @@ const uploadFileVal = async (req, res, next) => {
 };
 
 export {
-    multerUpload,
+    uploadSingleFile,
     uploadFileVal,
 };
