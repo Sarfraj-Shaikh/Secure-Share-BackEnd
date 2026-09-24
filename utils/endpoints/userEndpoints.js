@@ -6,7 +6,7 @@ import {
     verifyOtp
 } from "../../controllers/user.controller.js"
 import { roleValidation } from "../../middlewares/authorization.middleware.js";
-import { DeleteFileVal, UpdateFileVal, uploadFileVal, uploadSingleFile } from "../../middlewares/files.middleware.js";
+import { DeleteFileVal, fetchFileVal, UpdateFileVal, uploadFileVal, uploadSingleFile } from "../../middlewares/files.middleware.js";
 import { CreateFolderVal, DeleteFolderVal, UpdateFolderVal } from "../../middlewares/folder.middleware.js";
 import {
     emailVal, loginVal, otpVal, passVal, signupVal, userIsAuthVal, verifyAccVal
@@ -31,7 +31,7 @@ export const userEnpoints = (app) => {
     app.delete("/api/folders/:id", DeleteFolderVal, roleValidation, DeleteFolder);
 
     app.post("/api/file", roleValidation, uploadSingleFile, uploadFileVal, uploadFile);
-    app.get("/api/file", roleValidation, fetchFiles);
+    app.get("/api/file", roleValidation, fetchFileVal, fetchFiles);
     app.put("/api/file/:id", UpdateFileVal, roleValidation, updateFile);
     app.delete("/api/file/:id", DeleteFileVal, roleValidation, deleteFile);
 
