@@ -176,7 +176,7 @@ const UpdateFileVal = async (req, res, next) => {
     }
 };
 
-const DeleteFolderVal = async (req, res, next) => {
+const DeleteFileVal = async (req, res, next) => {
 
     try {
 
@@ -216,4 +216,5 @@ export {
     uploadSingleFile,
     uploadFileVal,
     UpdateFileVal,
+    DeleteFileVal,
 };
