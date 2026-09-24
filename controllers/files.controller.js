@@ -120,6 +120,7 @@ const fetchFiles = async (req, res) => {
         const [files, totalDocs] = await Promise.all([
             filesModel
                 .find(filter)
+                .populate("folderId", "name")
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit),
@@ -245,7 +246,7 @@ const deleteFile = async (req, res) => {
         // Delete file from Cloudinary
         const resourceType = getResourceType(files.mimeType);
 
-        const cloudinaryResult = await cloudinary.uploader.destroy( files.storageKey, { resource_type: resourceType, } );
+        const cloudinaryResult = await cloudinary.uploader.destroy(files.storageKey, { resource_type: resourceType, });
 
         console.log("Cloudinary delete result:", cloudinaryResult);
 
