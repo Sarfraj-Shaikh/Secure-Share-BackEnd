@@ -1,4 +1,4 @@
-import { fetchFiles, uploadFile } from "../../controllers/files.controller.js";
+import { deleteFile, fetchFiles, updateFile, uploadFile } from "../../controllers/files.controller.js";
 import { CreateFolder, DeleteFolder, FetchFolder, UpdateFolder } from "../../controllers/folder.controller.js";
 import {
     changePass,
@@ -32,7 +32,7 @@ export const userEnpoints = (app) => {
 
     app.post("/api/file", roleValidation, uploadSingleFile, uploadFileVal, uploadFile);
     app.get("/api/file", roleValidation, fetchFiles);
-    app.put("/api/file/:id", UpdateFileVal, roleValidation);
-    app.delete("/api/file/:id", DeleteFileVal, roleValidation);
+    app.put("/api/file/:id", UpdateFileVal, roleValidation, updateFile);
+    app.delete("/api/file/:id", DeleteFileVal, roleValidation, deleteFile);
 
 }
