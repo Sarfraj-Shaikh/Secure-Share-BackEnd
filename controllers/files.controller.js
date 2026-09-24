@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import userModel from "../models/user.model.js";
 import filesModel from "../models/files.model.js";
 import cloudinary from "../config/cloudinary.js";
+import folderModel from "../models/folder.model.js";
 
 const uploadToCloudinary = (fileBuffer, folder) => {
 
@@ -75,6 +76,13 @@ const uploadFile = async (req, res) => {
         if (newFile) {
             user.usedStorage += file.size
             await user.save();
+        }
+
+        const folder = await folderModel.findById(folderId);
+
+        if (folder) {
+            folder.totalFiles += 1;
+            await folder.save();
         }
 
         // 7. Response

@@ -95,7 +95,7 @@ const fetchFileVal = async (req, res, next) => {
             });
         }
 
-        if (!folderId || !mongoose.Types.ObjectId.isValid(folderId)) {
+        if (!mongoose.Types.ObjectId.isValid(folderId)) {
             return res.status(400).json({
                 success: false,
                 code: "INVALID_FOLDER_ID",
