@@ -63,19 +63,12 @@ const uploadFile = async (req, res) => {
         const cloudinaryResult = await uploadToCloudinary(file.buffer, `users/${user._id}/files`);
 
         const newFile = await filesModel.create({
-
             folderId,
-
             userId: user._id,
-
             fileName,
-
             storageKey: cloudinaryResult.public_id,
-
             mimeType: file.mimetype,
-
             fileSize: file.size,
-
             fileLink: cloudinaryResult.secure_url,
         });
 
