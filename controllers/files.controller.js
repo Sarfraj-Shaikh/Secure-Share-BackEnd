@@ -3,7 +3,6 @@ import userModel from "../models/user.model.js";
 import filesModel from "../models/files.model.js";
 import cloudinary from "../config/cloudinary.js";
 
-
 const uploadToCloudinary = (fileBuffer, folder) => {
 
     return new Promise((resolve, reject) => {
@@ -28,18 +27,13 @@ const uploadToCloudinary = (fileBuffer, folder) => {
     });
 };
 
-
 const uploadFile = async (req, res) => {
 
     try {
 
-        // 1. Token
         const token = req.headers.authorization;
 
-        // 2. Decode token
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-
-        // 3. Find user
         const user = await userModel.findById(decodedToken.id);
 
         if (!user) {
@@ -49,14 +43,18 @@ const uploadFile = async (req, res) => {
             });
         }
 
-        // 4. Body + file
         const { fileName, folderId } = req.body;
         const file = req.file;
 
-        // 5. Upload to Cloudinary
+        if (user.usedStorage >= user.storageLimit) {
+            return res.status(400).json({
+                success: false,
+                message: "Storage Full Limit Exceed",
+            });
+        }
+
         const cloudinaryResult = await uploadToCloudinary(file.buffer, `users/${user._id}/files`);
 
-        // 6. Save in MongoDB
         const newFile = await filesModel.create({
 
             folderId,
@@ -73,6 +71,11 @@ const uploadFile = async (req, res) => {
 
             fileLink: cloudinaryResult.secure_url,
         });
+
+        if(newFile) {
+            user.usedStorage += file.size
+            user.save();
+        }
 
         // 7. Response
         return res.status(201).json({
@@ -91,7 +94,6 @@ const uploadFile = async (req, res) => {
 
     }
 };
-
 
 export {
     uploadFile,
