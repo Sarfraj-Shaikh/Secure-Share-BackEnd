@@ -210,6 +210,19 @@ const updateFile = async (req, res) => {
 
 };
 
+const getResourceType = (mimeType) => {
+    
+    if (mimeType.startsWith("image/")) {
+        return "image";
+    }
+
+    if (mimeType.startsWith("video/")) {
+        return "video";
+    }
+
+    return "raw";
+};
+
 const deleteFile = async (req, res) => {
 
     try {
@@ -229,10 +242,22 @@ const deleteFile = async (req, res) => {
             });
         };
 
+        // Delete file from Cloudinary
+        try {
+
+            await cloudinary.uploader.destroy(files.storageKey, { resource_type: "raw", }
+            );
+
+        } catch (err) {
+
+            console.error("Cloudinary delete error:", err);
+
+        }
+
         const folder = await folderModel.findById(files.folderId);
 
         if (folder) {
-            folder.totalFiles -= 1;
+            folder.totalFiles = Math.max(folder.totalFiles - 1, 0);
             await folder.save();
         }
 
