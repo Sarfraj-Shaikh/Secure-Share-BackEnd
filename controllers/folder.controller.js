@@ -154,7 +154,7 @@ const FetchFavFolder = async (req, res) => {
         const pageNo = Math.max(Number(req.query.page) || 1, 1);
         const skip = (pageNo - 1) * limit;
 
-        const filter = { userId: decodedToken.id, };
+        const filter = { userId: decodedToken.id, isFavorite: true };
 
         const [folders, totalDocs] = await Promise.all([
             folderModel
