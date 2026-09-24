@@ -210,9 +210,9 @@ const deleteFile = async (req, res) => {
 
         const fileId = req.params.id;
 
-        const folder = await filesModel.findOneAndDelete({ _id: fileId, userId: decodedToken.id, });
+        const files = await filesModel.findOneAndDelete({ _id: fileId, userId: decodedToken.id, });
 
-        if (!folder) {
+        if (!files) {
             return res.status(404).json({
                 success: false,
                 code: "FILE_NOT_FOUND",
@@ -223,13 +223,13 @@ const deleteFile = async (req, res) => {
         const user = await userModel.findById(decodedToken.id);
 
         if (user) {
-            user.usedFolders = Math.max(user.usedFolders - 1, 0);
+            user.usedStorage = Math.max(user.usedStorage - files.fileSize, 0);
             await user.save();
         };
 
         return res.status(200).json({
             success: true,
-            message: "Folder Deleted Successfully.",
+            message: "File Deleted Successfully.",
         });
 
     } catch (err) {
