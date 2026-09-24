@@ -210,7 +210,7 @@ const deleteFile = async (req, res) => {
 
         const fileId = req.params.id;
 
-        const folder = await folderModel.findOneAndDelete({ _id: fileId, userId: decodedToken.id, });
+        const folder = await filesModel.findOneAndDelete({ _id: fileId, userId: decodedToken.id, });
 
         if (!folder) {
             return res.status(404).json({
