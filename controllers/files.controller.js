@@ -74,7 +74,7 @@ const uploadFile = async (req, res) => {
 
         if (newFile) {
             user.usedStorage += file.size
-            user.save();
+            await user.save();
         }
 
         // 7. Response
