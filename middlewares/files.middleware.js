@@ -13,6 +13,9 @@ const uploadSingleFile = (req, res, next) => {
 
     multerUpload.single("file")(req, res, (err) => {
 
+        console.log("MULTER FILE:", req.file?.size);
+        console.log("MULTER ERROR:", err);
+
         if (err instanceof multer.MulterError) {
 
             if (err.code === "LIMIT_FILE_SIZE") {
@@ -34,9 +37,6 @@ const uploadSingleFile = (req, res, next) => {
                 message: err.message,
             });
         }
-
-        console.log("MULTER FILE:", req.file?.size);
-        console.log("MULTER ERROR:", err);
 
         next();
     });
