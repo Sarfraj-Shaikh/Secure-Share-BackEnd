@@ -117,6 +117,12 @@ const fetchFiles = async (req, res) => {
         const folderId = req.query.folder;
         const filter = { userId: decodedToken.id, folderId: folderId };
 
+        // Current folder
+        const folder = await folderModel.findOne({
+            _id: folderId,
+            userId: decodedToken.id,
+        }).select("name");
+
         const [files, totalDocs] = await Promise.all([
             filesModel
                 .find(filter)
@@ -134,6 +140,7 @@ const fetchFiles = async (req, res) => {
             success: true,
             message: "Files Fetched Successfully.",
             files,
+            folderName: folder?.name || null,
             currentPage: pageNo,
             totalPages,
             totalDocs,
