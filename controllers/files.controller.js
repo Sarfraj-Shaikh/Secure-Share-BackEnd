@@ -211,7 +211,7 @@ const updateFile = async (req, res) => {
 };
 
 const getResourceType = (mimeType) => {
-    
+
     if (mimeType.startsWith("image/")) {
         return "image";
     }
@@ -243,16 +243,11 @@ const deleteFile = async (req, res) => {
         };
 
         // Delete file from Cloudinary
-        try {
+        const resourceType = getResourceType(files.mimeType);
 
-            await cloudinary.uploader.destroy(files.storageKey, { resource_type: "raw", }
-            );
+        const cloudinaryResult = await cloudinary.uploader.destroy( files.storageKey, { resource_type: resourceType, } );
 
-        } catch (err) {
-
-            console.error("Cloudinary delete error:", err);
-
-        }
+        console.log("Cloudinary delete result:", cloudinaryResult);
 
         const folder = await folderModel.findById(files.folderId);
 
