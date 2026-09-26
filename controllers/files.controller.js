@@ -408,8 +408,6 @@ const shareFile = async (req, res) => {
 
     } catch (err) {
 
-        console.log(err);
-
         return res.status(500).json({
             success: false,
             code: "SERVER_ERROR",
