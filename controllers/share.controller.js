@@ -83,9 +83,244 @@ const maskEmail = (email) => {
     const maskedLength = username.length - 4;
 
     return `${visibleStart}${"*".repeat(maskedLength)}${visibleEnd}@${domain}`;
-    
+
+};
+
+const getSharedFile = async (req, res) => {
+
+    try {
+
+        const token = req.headers.authorization;
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        const { fileId } = req.params;
+
+        const user = await userModel.findById(decodedToken.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User account not found",
+            });
+        };
+
+        if (!user.verified) {
+            return res.status(403).json({
+                success: false,
+                message: "Your account is not verified",
+            });
+        };
+
+        if (user.status === "inactive") {
+            return res.status(403).json({
+                success: false,
+                message: "Your account is not active",
+            });
+        };
+
+        // Find file
+        const file = await filesModel.findById(fileId);
+
+        if (!file) {
+            return res.status(404).json({
+                success: false,
+                message: "Invalid File",
+            });
+        }
+
+        // Check expiry
+        if (file.expiresAt && new Date(file.expiresAt) <= new Date()) {
+            return res.status(410).json({
+                success: false,
+                message: "This file has expired",
+            });
+        }
+
+        // Check whether this file was shared with requesting user
+        const sharedFile = await shareModel.findOne({
+            fileId: fileId,
+            receiverEmail: user.email,
+        });
+
+        if (!sharedFile) {
+            return res.status(403).json({
+                success: false,
+                message: "You don't have permission to access this file",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "File access verified",
+            data: {
+                fileId: file._id,
+                fileName: file.fileName,
+                fileSize: file.fileSize,
+                mimeType: file.mimeType,
+                passwordRequired: Boolean(file.password),
+                expiryDate: file.expiresAt,
+            },
+        });
+
+    } catch (err) {
+
+        if (err.name === "JsonWebTokenError") {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid authorization token",
+            });
+        }
+
+        if (err.name === "TokenExpiredError") {
+            return res.status(401).json({
+                success: false,
+                message: "Authorization token expired",
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            code: "SERVER_ERROR",
+            message: "Something Went Wrong.",
+        });
+
+    };
+
+};
+
+const downloadSharedFile = async (req, res) => {
+
+    try {
+
+        const token = req.headers.authorization;
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        const { fileId } = req.params;
+        const { password } = req.body;
+
+        const user = await userModel.findById(decodedToken.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User account not found",
+            });
+        };
+
+        // Account checks
+        if (!user.verified) {
+            return res.status(403).json({
+                success: false,
+                message: "Your account is not verified",
+            });
+        };
+
+        if (user.status === "inactive") {
+            return res.status(403).json({
+                success: false,
+                message: "Your account is not active",
+            });
+        };
+
+        // Find file
+        const file = await filesModel.findById(fileId);
+
+        if (!file) {
+            return res.status(404).json({
+                success: false,
+                message: "Invalid File",
+            });
+        };
+
+        // Expiry check
+        if (file.expiresAt && new Date(file.expiresAt) <= new Date()) {
+            return res.status(410).json({
+                success: false,
+                message: "This file has expired",
+            });
+        };
+
+        // Check share permission
+        const sharedFile = await shareModel.findOne({
+            fileId: fileId,
+            receiverEmail: user.email,
+        });
+
+        if (!sharedFile) {
+            return res.status(403).json({
+                success: false,
+                message: "You don't have permission to download this file",
+            });
+        }
+
+        // Password protected file
+        if (file.password) {
+
+            if (!password) {
+                return res.status(400).json({
+                    success: false,
+                    message: "File password is required",
+                });
+            };
+
+            if (password !== file.password) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Incorrect file password",
+                });
+            };
+
+        };
+
+        if (!file.fileLink) {
+            return res.status(404).json({
+                success: false,
+                message: "File Path Not Found",
+            });
+        }
+
+        return res.download(
+            file.fileLink, file.fileName,
+            (err) => {
+                if (err) {
+                    if (!res.headersSent) {
+                        return res.status(500).json({
+                            success: false,
+                            message: "Unable to download file",
+                        });
+                    }
+                }
+            }
+        );
+
+    } catch (err) {
+        
+        console.error("downloadSharedFile error:", err);
+
+        if (err.name === "JsonWebTokenError") {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid authorization token",
+            });
+        }
+
+        if (err.name === "TokenExpiredError") {
+            return res.status(401).json({
+                success: false,
+                message: "Authorization token expired",
+            });
+        }
+
+        return res.status(500).json({
+            success: false,
+            code: "SERVER_ERROR",
+            message: "Something Went Wrong.",
+        });
+    }
 };
 
 export {
     fetchSharedFile,
+    getSharedFile,
+    downloadSharedFile,
 }
