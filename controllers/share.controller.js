@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import userModel from "../models/user.model.js";
 import shareModel from "../models/share.model.js";
+import filesModel from "../models/files.model.js";
+import mongoose from "mongoose";
 
 const fetchSharedFile = async (req, res) => {
 
@@ -93,7 +95,15 @@ const getSharedFile = async (req, res) => {
         const token = req.headers.authorization;
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
 
-        const { fileId } = req.params;
+        const { id: fileId } = req.params;
+
+        if (!mongoose.isValidObjectId(fileId)) {
+            return res.status(400).json({
+                success: false,
+                code: "INVALID_FILE_ID",
+                message: "Invalid File ID.",
+            });
+        }
 
         const user = await userModel.findById(decodedToken.id);
 
