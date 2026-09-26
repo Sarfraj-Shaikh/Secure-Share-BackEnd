@@ -4,6 +4,8 @@ import filesModel from "../models/files.model.js";
 import cloudinary from "../config/cloudinary.js";
 import folderModel from "../models/folder.model.js";
 import { fileSharingEmail } from "../templates/shareFile.js";
+import shareModel from "../models/share.model.js";
+import nodemailer from "nodemailer";
 
 const uploadToCloudinary = (fileBuffer, folder) => {
 
@@ -323,12 +325,27 @@ const shareFile = async (req, res) => {
             });
         };
 
-        if (sender === receiver) {
+        if (sender.email === receiver.email) {
             return res.status(404).json({
                 success: false,
                 message: "Can't Share On Self Account",
             });
         };
+
+        if (!receiver.verified) {
+            return res.status(404).json({
+                success: false,
+                message: `${receiver.fullName.toUpperCase()} Is Not Verified`,
+            });
+        };
+
+        if (receiver.status === "inactive") {
+            return res.status(404).json({
+                success: false,
+                message: `Account ${receiver.fullName.toUpperCase()} Is Not Active`,
+            });
+        };
+
 
         if (sender.usedShareLimit > sender.totalShareLimit) {
             return res.status(400).json({
@@ -350,16 +367,30 @@ const shareFile = async (req, res) => {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
-            subject: `${process.env.SITE_NAME} - File Shared With You`,
-            html: fileSharingEmail(receiver.fullName, file.fileName, file.fileSize, file.mimeType, file.mimeType, file.password, file.expiresAt, file.fileLink),
+            subject: `${sender.fullName} - File Shared With You`,
+            html: fileSharingEmail({
+                name: receiver.fullName,
+                fileName: file.fileName,
+                fileSize: file.fileSize,
+                fileExtension: "." + file.mimeType.split("/")[1],
+                mimeType: file.mimeType.split("/")[0],
+                passwordProtected: file.password,
+                expiryDate: file.expiresAt,
+                downloadUrl: file.fileLink,
+            }),
         };
 
         const emailSend = await transporter.sendMail(mailOptions);
 
         if (emailSend) {
 
+            await shareModel.create({ fileId, userId: sender._id, receiverEmail: email, });
+
             sender.usedShareLimit += 1;
             await sender.save();
+
+            file.shares += 1;
+            await file.save();
 
         } else {
 
@@ -376,6 +407,8 @@ const shareFile = async (req, res) => {
         });
 
     } catch (err) {
+
+        console.log(err);
 
         return res.status(500).json({
             success: false,
