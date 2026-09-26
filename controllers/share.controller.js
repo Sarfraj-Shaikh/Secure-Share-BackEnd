@@ -211,7 +211,10 @@ const downloadSharedFile = async (req, res) => {
             });
         }
 
-        // JWT verification
+        // ------------------------------------------------------------
+        // Authentication
+        // ------------------------------------------------------------
+
         const authHeader = req.headers.authorization;
 
         if (!authHeader) {
@@ -225,7 +228,10 @@ const downloadSharedFile = async (req, res) => {
             ? authHeader.split(" ")[1]
             : authHeader;
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_SECRET
+        );
 
         const user = await userModel.findById(decoded.id);
 
@@ -236,6 +242,24 @@ const downloadSharedFile = async (req, res) => {
             });
         }
 
+        if (!user.verified) {
+            return res.status(403).json({
+                success: false,
+                message: "Your account is not verified.",
+            });
+        }
+
+        if (user.status === "inactive") {
+            return res.status(403).json({
+                success: false,
+                message: "Your account is not active.",
+            });
+        }
+
+        // ------------------------------------------------------------
+        // File
+        // ------------------------------------------------------------
+
         const file = await filesModel.findById(fileId);
 
         if (!file) {
@@ -245,7 +269,24 @@ const downloadSharedFile = async (req, res) => {
             });
         }
 
-        // Check share permission
+        // ------------------------------------------------------------
+        // Expiry
+        // ------------------------------------------------------------
+
+        if (
+            file.expiresAt &&
+            new Date(file.expiresAt) <= new Date()
+        ) {
+            return res.status(410).json({
+                success: false,
+                message: "This file has expired.",
+            });
+        }
+
+        // ------------------------------------------------------------
+        // Share Permission
+        // ------------------------------------------------------------
+
         const sharedFile = await shareModel.findOne({
             fileId: file._id,
             receiverEmail: user.email,
@@ -254,21 +295,39 @@ const downloadSharedFile = async (req, res) => {
         if (!sharedFile) {
             return res.status(403).json({
                 success: false,
-                message: "You don't have permission to download this file.",
+                message:
+                    "You don't have permission to download this file.",
             });
         }
 
-        // Password check
-        if (file.passwordRequired) {
-            if (!password) {
+        // ------------------------------------------------------------
+        // Password
+        // ------------------------------------------------------------
+
+        const passwordRequired = Boolean(file.password);
+
+        if (passwordRequired) {
+
+            if (!password || !password.trim()) {
                 return res.status(400).json({
                     success: false,
-                    message: "Password required.",
+                    code: "PASSWORD_REQUIRED",
+                    message: "File password is required.",
                 });
             }
 
-            // Your existing password comparison here
+            if (password !== file.password) {
+                return res.status(401).json({
+                    success: false,
+                    code: "INVALID_PASSWORD",
+                    message: "Incorrect file password.",
+                });
+            }
         }
+
+        // ------------------------------------------------------------
+        // Cloudinary URL
+        // ------------------------------------------------------------
 
         if (!file.fileLink) {
             return res.status(404).json({
@@ -277,24 +336,40 @@ const downloadSharedFile = async (req, res) => {
             });
         }
 
-        const downloadUrl = file.fileLink.replace(
-            "/upload/",
-            "/upload/fl_attachment/"
-        );
+        const downloadUrl = file.fileLink.replace("/upload/", "/upload/fl_attachment/");
 
         return res.status(200).json({
             success: true,
+            message: "File is ready for download.",
             downloadUrl,
             fileName: file.fileName,
         });
 
     } catch (error) {
-        console.error("DOWNLOAD ERROR:", error);
+
+        console.error(
+            "downloadSharedFile error:",
+            error
+        );
+
+        if (error.name === "JsonWebTokenError") {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid authorization token.",
+            });
+        }
+
+        if (error.name === "TokenExpiredError") {
+            return res.status(401).json({
+                success: false,
+                message: "Authorization token expired.",
+            });
+        }
 
         return res.status(500).json({
             success: false,
-            message: "Unable to download file",
-            error: error.message,
+            code: "SERVER_ERROR",
+            message: "Unable to download file.",
         });
     }
 };
