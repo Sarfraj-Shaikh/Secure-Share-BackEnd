@@ -36,6 +36,6 @@ export const userEnpoints = (app) => {
     app.get("/api/file", roleValidation, fetchFileVal, fetchFiles);
     app.put("/api/file/:id", UpdateFileVal, roleValidation, updateFile);
     app.delete("/api/file/:id", DeleteFileVal, roleValidation, deleteFile);
-    app.delete("/api/share-file", roleValidation, shareFileVal, shareFile);
+    app.post("/api/share-file", roleValidation, shareFileVal, shareFile);
 
 }

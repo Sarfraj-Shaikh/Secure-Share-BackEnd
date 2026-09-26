@@ -3,6 +3,7 @@ import userModel from "../models/user.model.js";
 import filesModel from "../models/files.model.js";
 import cloudinary from "../config/cloudinary.js";
 import folderModel from "../models/folder.model.js";
+import { fileSharingEmail } from "../templates/shareFile.js";
 
 const uploadToCloudinary = (fileBuffer, folder) => {
 
@@ -299,55 +300,65 @@ const shareFile = async (req, res) => {
 
         const sender = await userModel.findById(decodedToken.id);
         const receiver = await userModel.findOne({ email: email });
+        const file = await filesModel.findById(fileId);
 
         if (!sender) {
             return res.status(404).json({
                 success: false,
                 message: "You're Invalid User",
             });
-        }
+        };
 
         if (!receiver) {
             return res.status(404).json({
                 success: false,
                 message: "The Receiver Email User Are Does Not Registered On Our Plateform",
             });
-        }
+        };
 
-        const files = await filesModel.findOneAndDelete({ _id: fileId, userId: decodedToken.id, });
-
-        if (!files) {
+        if (!file) {
             return res.status(404).json({
                 success: false,
-                code: "FILE_NOT_FOUND",
-                message: "File not found.",
+                message: "Invalid File",
             });
         };
 
-        // Delete file from Cloudinary
-        const resourceType = getResourceType(files.mimeType);
+        // Mail transporter
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
 
-        const cloudinaryResult = await cloudinary.uploader.destroy(files.storageKey, { resource_type: resourceType, });
-
-        console.log("Cloudinary delete result:", cloudinaryResult);
-
-        const folder = await folderModel.findById(files.folderId);
-
-        if (folder) {
-            folder.totalFiles = Math.max(folder.totalFiles - 1, 0);
-            await folder.save();
-        }
-
-        const user = await userModel.findById(decodedToken.id);
-
-        if (user) {
-            user.usedStorage = Math.max(user.usedStorage - files.fileSize, 0);
-            await user.save();
+        // Send OTP email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: `${process.env.SITE_NAME} - File Shared With You`,
+            html: fileSharingEmail(receiver.fullName, file.fileName, file.fileSize, file.mimeType, file.mimeType, file.password, file.expiresAt, file.fileLink),
         };
+
+        const emailSend = await transporter.sendMail(mailOptions);
+
+        if (emailSend) {
+
+            sender.usedShareLimit += 1;
+            await sender.save();
+
+        } else {
+
+            return res.status(500).json({
+                success: false,
+                message: "Unable To Share File"
+            });
+
+        }
 
         return res.status(200).json({
             success: true,
-            message: "File Deleted Successfully.",
+            message: "File Sent Successfully"
         });
 
     } catch (err) {
