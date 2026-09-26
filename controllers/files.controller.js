@@ -307,14 +307,14 @@ const shareFile = async (req, res) => {
         if (!sender) {
             return res.status(404).json({
                 success: false,
-                message: "You're Invalid User",
+                message: "User account not found",
             });
         };
 
         if (!receiver) {
             return res.status(404).json({
                 success: false,
-                message: "The Receiver Email User Are Does Not Registered On Our Plateform",
+                message: "Receiver email is not registered on our platform",
             });
         };
 
@@ -326,23 +326,23 @@ const shareFile = async (req, res) => {
         };
 
         if (sender.email === receiver.email) {
-            return res.status(404).json({
+            return res.status(400).json({
                 success: false,
-                message: "Can't Share On Self Account",
+                message: "Can't Share File With Yourself",
             });
         };
 
         if (!receiver.verified) {
-            return res.status(404).json({
+            return res.status(400).json({
                 success: false,
                 message: `${receiver.fullName.toUpperCase()} Is Not Verified`,
             });
         };
 
         if (receiver.status === "inactive") {
-            return res.status(404).json({
+            return res.status(400).json({
                 success: false,
-                message: `Account ${receiver.fullName.toUpperCase()} Is Not Active`,
+                message: `Account Of ${receiver.fullName.toUpperCase()} Is Not Active`,
             });
         };
 
@@ -350,7 +350,7 @@ const shareFile = async (req, res) => {
         if (sender.usedShareLimit >= sender.totalShareLimit) {
             return res.status(400).json({
                 success: false,
-                message: "Share Limit Exceed",
+                message: "Share Limit Exceeded",
             });
         };
 
