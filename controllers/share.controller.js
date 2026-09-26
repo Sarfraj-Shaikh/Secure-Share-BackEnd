@@ -199,14 +199,23 @@ const getSharedFile = async (req, res) => {
 };
 
 const downloadSharedFile = async (req, res) => {
-
     try {
-
         const token = req.headers.authorization;
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        const decodedToken = jwt.verify(
+            token,
+            process.env.JWT_SECRET
+        );
 
-        const { fileId } = req.params;
+        const { id: fileId } = req.params;
         const { password } = req.body;
+
+        if (!mongoose.isValidObjectId(fileId)) {
+            return res.status(400).json({
+                success: false,
+                code: "INVALID_FILE_ID",
+                message: "Invalid File ID.",
+            });
+        }
 
         const user = await userModel.findById(decodedToken.id);
 
@@ -215,24 +224,22 @@ const downloadSharedFile = async (req, res) => {
                 success: false,
                 message: "User account not found",
             });
-        };
+        }
 
-        // Account checks
         if (!user.verified) {
             return res.status(403).json({
                 success: false,
                 message: "Your account is not verified",
             });
-        };
+        }
 
         if (user.status === "inactive") {
             return res.status(403).json({
                 success: false,
                 message: "Your account is not active",
             });
-        };
+        }
 
-        // Find file
         const file = await filesModel.findById(fileId);
 
         if (!file) {
@@ -240,19 +247,20 @@ const downloadSharedFile = async (req, res) => {
                 success: false,
                 message: "Invalid File",
             });
-        };
+        }
 
-        // Expiry check
-        if (file.expiresAt && new Date(file.expiresAt) <= new Date()) {
+        if (
+            file.expiresAt &&
+            new Date(file.expiresAt) <= new Date()
+        ) {
             return res.status(410).json({
                 success: false,
                 message: "This file has expired",
             });
-        };
+        }
 
-        // Check share permission
         const sharedFile = await shareModel.findOne({
-            fileId: fileId,
+            fileId: file._id,
             receiverEmail: user.email,
         });
 
@@ -263,24 +271,21 @@ const downloadSharedFile = async (req, res) => {
             });
         }
 
-        // Password protected file
         if (file.password) {
-
             if (!password) {
                 return res.status(400).json({
                     success: false,
                     message: "File password is required",
                 });
-            };
+            }
 
             if (password !== file.password) {
                 return res.status(401).json({
                     success: false,
                     message: "Incorrect file password",
                 });
-            };
-
-        };
+            }
+        }
 
         if (!file.fileLink) {
             return res.status(404).json({
@@ -290,21 +295,19 @@ const downloadSharedFile = async (req, res) => {
         }
 
         return res.download(
-            file.fileLink, file.fileName,
+            file.fileLink,
+            file.fileName,
             (err) => {
-                if (err) {
-                    if (!res.headersSent) {
-                        return res.status(500).json({
-                            success: false,
-                            message: "Unable to download file",
-                        });
-                    }
+                if (err && !res.headersSent) {
+                    return res.status(500).json({
+                        success: false,
+                        message: "Unable to download file",
+                    });
                 }
             }
         );
 
     } catch (err) {
-
         console.error("downloadSharedFile error:", err);
 
         if (err.name === "JsonWebTokenError") {
