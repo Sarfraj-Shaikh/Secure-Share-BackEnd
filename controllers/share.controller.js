@@ -89,11 +89,12 @@ const maskEmail = (email) => {
 };
 
 const getSharedFile = async (req, res) => {
-
     try {
-
         const token = req.headers.authorization;
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        const decodedToken = jwt.verify(
+            token,
+            process.env.JWT_SECRET
+        );
 
         const { id: fileId } = req.params;
 
@@ -112,23 +113,22 @@ const getSharedFile = async (req, res) => {
                 success: false,
                 message: "User account not found",
             });
-        };
+        }
 
         if (!user.verified) {
             return res.status(403).json({
                 success: false,
                 message: "Your account is not verified",
             });
-        };
+        }
 
         if (user.status === "inactive") {
             return res.status(403).json({
                 success: false,
                 message: "Your account is not active",
             });
-        };
+        }
 
-        // Find file
         const file = await filesModel.findById(fileId);
 
         if (!file) {
@@ -138,17 +138,18 @@ const getSharedFile = async (req, res) => {
             });
         }
 
-        // Check expiry
-        if (file.expiresAt && new Date(file.expiresAt) <= new Date()) {
+        if (
+            file.expiresAt &&
+            new Date(file.expiresAt) <= new Date()
+        ) {
             return res.status(410).json({
                 success: false,
                 message: "This file has expired",
             });
         }
 
-        // Check whether this file was shared with requesting user
         const sharedFile = await shareModel.findOne({
-            fileId: fileId,
+            fileId: file._id,
             receiverEmail: user.email,
         });
 
@@ -173,8 +174,7 @@ const getSharedFile = async (req, res) => {
         });
 
     } catch (err) {
-
-        console.error("error:", err);
+        console.error("getSharedFile error:", err);
 
         if (err.name === "JsonWebTokenError") {
             return res.status(401).json({
@@ -195,9 +195,7 @@ const getSharedFile = async (req, res) => {
             code: "SERVER_ERROR",
             message: "Something Went Wrong.",
         });
-
-    };
-
+    }
 };
 
 const downloadSharedFile = async (req, res) => {
