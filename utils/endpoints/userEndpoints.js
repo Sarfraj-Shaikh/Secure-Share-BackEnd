@@ -1,6 +1,6 @@
 import { deleteFile, fetchFiles, shareFile, updateFile, uploadFile } from "../../controllers/files.controller.js";
 import { CreateFolder, DeleteFolder, FetchFavFolder, FetchFolder, UpdateFolder } from "../../controllers/folder.controller.js";
-import { fetchSharedFile } from "../../controllers/share.controller.js";
+import { downloadSharedFile, fetchSharedFile, getSharedFile } from "../../controllers/share.controller.js";
 import {
     changePass,
     login, passEmail, signup, userIsAuth, verifyAccount, verifyEmail,
@@ -41,5 +41,7 @@ export const userEnpoints = (app) => {
     app.post("/api/share-file", roleValidation, shareFileVal, shareFile);
 
     app.get("/api/share-file", roleValidation, fetchSharedFile);
+    app.get("/api/download-file", roleValidation, getSharedFile);
+    app.post("/api/download-file", roleValidation, downloadSharedFile);
 
 }
