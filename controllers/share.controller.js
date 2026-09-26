@@ -14,8 +14,8 @@ const fetchSharedFile = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: "User Not Found"
-            })
-        };
+            });
+        }
 
         const pageNo = Math.max(Number(req.query.page) || 1, 1);
         const limit = Math.max(Number(req.query.limit) || 10, 10);
@@ -34,10 +34,18 @@ const fetchSharedFile = async (req, res) => {
         const isLoadMore = files.length > limit;
         const responseFiles = files.slice(0, limit);
 
+        const maskedFiles = responseFiles.map((file) => {
+
+            const fileObj = file.toObject();
+            if (fileObj.receiverEmail) { fileObj.receiverEmail = maskEmail(fileObj.receiverEmail); }
+            return fileObj;
+
+        });
+
         return res.status(200).json({
             success: true,
             message: "Files Fetched Successfully.",
-            files: responseFiles,
+            files: maskedFiles,
             currentPage: pageNo,
             isLoadMore
         });
@@ -52,6 +60,30 @@ const fetchSharedFile = async (req, res) => {
 
     }
 
+};
+
+const maskEmail = (email) => {
+
+    if (!email || typeof email !== "string") return email;
+
+    const [username, domain] = email.split("@");
+
+    if (!username || !domain) return email;
+
+    if (username.length <= 2) {
+        return `${username[0]}*@${domain}`;
+    }
+
+    if (username.length <= 4) {
+        return `${username[0]}${"*".repeat(username.length - 1)}@${domain}`;
+    }
+
+    const visibleStart = username.slice(0, 2);
+    const visibleEnd = username.slice(-2);
+    const maskedLength = username.length - 4;
+
+    return `${visibleStart}${"*".repeat(maskedLength)}${visibleEnd}@${domain}`;
+    
 };
 
 export {
