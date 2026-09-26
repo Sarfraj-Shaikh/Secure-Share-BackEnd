@@ -330,6 +330,13 @@ const shareFile = async (req, res) => {
             });
         };
 
+        if (sender.usedShareLimit > sender.totalShareLimit) {
+            return res.status(400).json({
+                success: false,
+                message: "Share Limit Exceed",
+            });
+        };
+
         // Mail transporter
         const transporter = nodemailer.createTransport({
             service: "gmail",
