@@ -347,7 +347,7 @@ const shareFile = async (req, res) => {
         };
 
 
-        if (sender.usedShareLimit > sender.totalShareLimit) {
+        if (sender.usedShareLimit >= sender.totalShareLimit) {
             return res.status(400).json({
                 success: false,
                 message: "Share Limit Exceed",
@@ -376,7 +376,7 @@ const shareFile = async (req, res) => {
                 mimeType: file.mimeType.split("/")[0],
                 passwordProtected: file.password,
                 expiryDate: file.expiresAt,
-                downloadUrl: file.fileLink,
+                downloadUrl: `${process.env.FRONTEND_URL}/file/download/${fileId}`,
             }),
         };
 

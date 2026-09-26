@@ -1,13 +1,4 @@
-export const fileSharingEmail = ({
-  name,
-  fileName,
-  fileSize,
-  fileExtension,
-  mimeType,
-  passwordProtected,
-  expiryDate,
-  downloadUrl,
-}) => {
+export const fileSharingEmail = ({ name, fileName, fileSize, fileExtension, mimeType, passwordProtected, expiryDate, downloadUrl, }) => {
 
   const siteName = escapeHtml(process.env.SITE_NAME || "");
   const userName = escapeHtml(capitalizeName(name));
@@ -22,7 +13,7 @@ export const fileSharingEmail = ({
 
   const safeDownloadUrl = escapeHtml(downloadUrl || "");
 
-  const passwordStatus = passwordProtected ? "Yes" : "No";
+  const passwordStatus = passwordProtected ? passwordProtected : "No";
   const currentYear = new Date().getFullYear();
 
   return `
