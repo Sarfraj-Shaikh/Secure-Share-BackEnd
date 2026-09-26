@@ -264,7 +264,7 @@ const shareFileVal = async (req, res, next) => {
         if (!fileId || fileId.trim() === "") {
             return res.status(400).json({
                 success: false,
-                message: "Email ID Required"
+                message: "File ID Required"
             })
         };
 
