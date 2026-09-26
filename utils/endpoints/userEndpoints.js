@@ -1,4 +1,4 @@
-import { deleteFile, fetchFiles, updateFile, uploadFile } from "../../controllers/files.controller.js";
+import { deleteFile, fetchFiles, shareFile, updateFile, uploadFile } from "../../controllers/files.controller.js";
 import { CreateFolder, DeleteFolder, FetchFavFolder, FetchFolder, UpdateFolder } from "../../controllers/folder.controller.js";
 import {
     changePass,
@@ -6,7 +6,7 @@ import {
     verifyOtp
 } from "../../controllers/user.controller.js"
 import { roleValidation } from "../../middlewares/authorization.middleware.js";
-import { DeleteFileVal, fetchFileVal, UpdateFileVal, uploadFileVal, uploadSingleFile } from "../../middlewares/files.middleware.js";
+import { DeleteFileVal, fetchFileVal, shareFileVal, UpdateFileVal, uploadFileVal, uploadSingleFile } from "../../middlewares/files.middleware.js";
 import { CreateFolderVal, DeleteFolderVal, UpdateFolderVal } from "../../middlewares/folder.middleware.js";
 import {
     emailVal, loginVal, otpVal, passVal, signupVal, userIsAuthVal, verifyAccVal
@@ -36,5 +36,6 @@ export const userEnpoints = (app) => {
     app.get("/api/file", roleValidation, fetchFileVal, fetchFiles);
     app.put("/api/file/:id", UpdateFileVal, roleValidation, updateFile);
     app.delete("/api/file/:id", DeleteFileVal, roleValidation, deleteFile);
+    app.delete("/api/share-file", roleValidation, shareFileVal, shareFile);
 
 }

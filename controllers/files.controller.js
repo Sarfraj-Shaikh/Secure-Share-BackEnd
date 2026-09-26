@@ -288,10 +288,85 @@ const deleteFile = async (req, res) => {
 
 };
 
+const shareFile = async (req, res) => {
+
+    try {
+
+        const token = req.headers.authorization;
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+        const { email, fileId } = req.body;
+
+        const sender = await userModel.findById(decodedToken.id);
+        const receiver = await userModel.findOne({ email: email });
+
+        if (!sender) {
+            return res.status(404).json({
+                success: false,
+                message: "You're Invalid User",
+            });
+        }
+
+        if (!receiver) {
+            return res.status(404).json({
+                success: false,
+                message: "The Receiver Email User Are Does Not Registered On Our Plateform",
+            });
+        }
+
+        const files = await filesModel.findOneAndDelete({ _id: fileId, userId: decodedToken.id, });
+
+        if (!files) {
+            return res.status(404).json({
+                success: false,
+                code: "FILE_NOT_FOUND",
+                message: "File not found.",
+            });
+        };
+
+        // Delete file from Cloudinary
+        const resourceType = getResourceType(files.mimeType);
+
+        const cloudinaryResult = await cloudinary.uploader.destroy(files.storageKey, { resource_type: resourceType, });
+
+        console.log("Cloudinary delete result:", cloudinaryResult);
+
+        const folder = await folderModel.findById(files.folderId);
+
+        if (folder) {
+            folder.totalFiles = Math.max(folder.totalFiles - 1, 0);
+            await folder.save();
+        }
+
+        const user = await userModel.findById(decodedToken.id);
+
+        if (user) {
+            user.usedStorage = Math.max(user.usedStorage - files.fileSize, 0);
+            await user.save();
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: "File Deleted Successfully.",
+        });
+
+    } catch (err) {
+
+        return res.status(500).json({
+            success: false,
+            code: "SERVER_ERROR",
+            message: "Something Went Wrong.",
+        });
+
+    }
+
+};
+
 export {
     uploadFile,
     uploadToCloudinary,
     fetchFiles,
     updateFile,
-    deleteFile
+    deleteFile,
+    shareFile,
 };

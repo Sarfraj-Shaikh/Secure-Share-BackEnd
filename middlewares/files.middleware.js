@@ -248,10 +248,52 @@ const DeleteFileVal = async (req, res, next) => {
 
 };
 
+const shareFileVal = async (req, res, next) => {
+
+    try {
+
+        const { email, fileId } = req.body;
+
+        if (!email || email.trim() === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Email ID Required"
+            })
+        };
+
+        if (!fileId || fileId.trim() === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Email ID Required"
+            })
+        };
+
+        if (!mongoose.isValidObjectId(fileId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid File ID.",
+            })
+        };
+
+        next();
+
+    } catch (err) {
+
+        return res.status(500).json({
+            code: "SERVER_ERROR",
+            success: false,
+            message: err.message
+        });
+
+    }
+
+};
+
 export {
     uploadSingleFile,
     uploadFileVal,
     UpdateFileVal,
     DeleteFileVal,
     fetchFileVal,
+    shareFileVal,
 };
