@@ -41,7 +41,7 @@ export const userEnpoints = (app) => {
     app.post("/api/share-file", roleValidation, shareFileVal, shareFile);
 
     app.get("/api/share-file", roleValidation, fetchSharedFile);
-    app.get("/api/download-file", roleValidation, getSharedFile);
+    app.get("/api/download-file/:id", roleValidation, getSharedFile);
     app.post("/api/download-file", roleValidation, downloadSharedFile);
 
 }

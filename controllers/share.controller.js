@@ -164,6 +164,8 @@ const getSharedFile = async (req, res) => {
 
     } catch (err) {
 
+        console.error("error:", err);
+
         if (err.name === "JsonWebTokenError") {
             return res.status(401).json({
                 success: false,
@@ -294,7 +296,7 @@ const downloadSharedFile = async (req, res) => {
         );
 
     } catch (err) {
-        
+
         console.error("downloadSharedFile error:", err);
 
         if (err.name === "JsonWebTokenError") {
