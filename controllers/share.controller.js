@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import userModel from "../models/user.model";
-import shareModel from "../models/share.model";
+import userModel from "../models/user.model.js";
+import shareModel from "../models/share.model.js";
 
 const fetchSharedFile = async (req, res) => {
 
