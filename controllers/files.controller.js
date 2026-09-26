@@ -323,6 +323,13 @@ const shareFile = async (req, res) => {
             });
         };
 
+        if (sender === receiver) {
+            return res.status(404).json({
+                success: false,
+                message: "Can't Share On Self Account",
+            });
+        };
+
         // Mail transporter
         const transporter = nodemailer.createTransport({
             service: "gmail",
